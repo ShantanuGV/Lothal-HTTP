@@ -1,0 +1,37 @@
+# Build output
+*.exe
+*.obj
+*.o
+*.out
+*.dll
+*.lib
+*.a
+
+# Visual Studio Code
+.vscode/
+
+# VS Code Test
+.vscode-test/
+
+# CMake
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+Makefile
+compile_commands.json
+cmake_install.cmake
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Public folder (ignore everything inside)
+public/
+
+# OS files
+.DS_Store
+Thumbs.db
