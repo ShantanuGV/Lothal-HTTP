@@ -4,6 +4,8 @@
 #include <ws2tcpip.h>
 #include <string>
 
+#include "router.h"
+
 class Server{
     private:
         int port;
@@ -11,6 +13,7 @@ class Server{
         SOCKET serverSocket;
         SOCKET clientSocket;
         sockaddr_in serverAddress;
+        Router router;
 
     public:
         Server(int port);
@@ -18,4 +21,21 @@ class Server{
         bool initialize();
         void start();
         void shutdown();
+
+        void get(const string& path, Router::Handler handler);
+
+        void post(const string& path, Router::Handler handler);
+
+        void put(const string& path, Router::Handler handler);
+
+        void patch(const string& path, Router::Handler handler);
+
+        void del(const string& path,
+            Router::Handler handler);
+
+        void head(const string& path, Router::Handler handler);
+
+        void options(const string& path, Router::Handler handler);
+
+        void query(const string& path, Router::Handler handler);
 };

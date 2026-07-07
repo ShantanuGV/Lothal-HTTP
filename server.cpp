@@ -10,6 +10,7 @@
 #include "HttpResponse.h"
 #include "FileSystem.h"
 #include "MimeTypes.h"
+#include "router.h"
 
 using namespace std;
 
@@ -112,6 +113,62 @@ string loadFile(const string& path){
     return buffer.str();
 }
 
+void Server::get(
+    const string& path,
+    Router::Handler handler)
+{
+    router.get(path, handler);
+}
+
+void Server::post(
+    const string& path,
+    Router::Handler handler)
+{
+    router.post(path, handler);
+}
+
+void Server::put(
+    const string& path,
+    Router::Handler handler)
+{
+    router.put(path, handler);
+}
+
+void Server::patch(
+    const string& path,
+    Router::Handler handler)
+{
+    router.patch(path, handler);
+}
+
+void Server::del(
+    const string& path,
+    Router::Handler handler)
+{
+    router.del(path, handler);
+}
+
+void Server::head(
+    const string& path,
+    Router::Handler handler)
+{
+    router.head(path, handler);
+}
+
+void Server::options(
+    const string& path,
+    Router::Handler handler)
+{
+    router.options(path, handler);
+}
+
+void Server::query(
+    const string& path,
+    Router::Handler handler)
+{
+    router.query(path, handler);
+}
+
 void Server::start(){
     cout << "\n========== SERVER STARTED ==========\n";
 
@@ -180,41 +237,9 @@ void Server::start(){
              << request.getVersion()
              << endl;
 
-        string filePath;
-
-        if (request.getPath() == "/"){
-            filePath = "public/index.html";
-        }
-        else{
-            filePath = "public" + request.getPath();
-        }
-
-        string body = FileSystem::readFile(filePath);
-
-        bool fileFound = true;
-
-        if (body.empty()){
-
-            fileFound = false;
-            body = "<h1>404 File Not Found</h1>";
-        }
-
-        string contentType = MimeTypes::get(filePath);
-
-        string status;
-
-        if (fileFound){
-            status = "200 OK";
-        }
-        else{
-            status = "404 Not Found";
-        }
-
         HttpResponse response;
 
-        response.setStatus(fileFound ? "200 OK" : "404 Not Found");
-        response.setContentType(contentType);
-        response.setBody(body);
+        router.handle(request, response);
 
         string rawResponse = response.build();
 
