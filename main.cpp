@@ -15,6 +15,33 @@ int main(){
         res.setBody("Hello from Lothal!");
     });
 
+    server.get("/users/:id",
+[](HttpRequest& req, HttpResponse& res)
+{
+    res.setBody(
+        req.getParam("id")
+    );
+});
+
+server.get("/users/:id",
+[](HttpRequest& req, HttpResponse& res)
+{
+    res.setStatus("200 OK");
+    res.setContentType("text/plain");
+
+    res.setBody(
+        "User ID = " +
+        req.getParam("id")
+    );
+});
+
+    server.post("/login", [](HttpRequest& req, HttpResponse& res)
+{
+    res.setStatus("200 OK");
+    res.setContentType("text/plain");
+    res.setBody("Login Success");
+});
+
     server.start();
 
     return 0;

@@ -32,6 +32,8 @@ private:
 
     unordered_map<string, string> headers;
 
+    unordered_map<string, string> params;
+
     unordered_map<string, string> query;
 
     string body;
@@ -61,6 +63,11 @@ public:
     string getQuery(const string& key) const;
 
     string getBody() const;
+
+    string getParam(const string& key) const;
+
+    void setParam(const string& key,
+                  const string& value);
 };
 
 ostream& operator<<(ostream& os, HttpMethod method);

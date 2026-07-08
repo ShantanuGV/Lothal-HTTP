@@ -210,6 +210,23 @@ string HttpRequest::getBody() const
     return body;
 }
 
+string HttpRequest::getParam(const string& key) const
+{
+    auto it = params.find(key);
+
+    if(it == params.end())
+        return "";
+
+    return it->second;
+}
+
+void HttpRequest::setParam(
+    const string& key,
+    const string& value)
+{
+    params[key] = value;
+}
+
 ostream& operator<<(ostream& os, HttpMethod method)
 {
     switch (method)

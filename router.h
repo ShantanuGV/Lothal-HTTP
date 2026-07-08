@@ -3,49 +3,85 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "HttpRequest.h"
 #include "HttpResponse.h"
-
-using namespace std;
+#include "route.h"
 
 class Router
 {
 public:
 
-    using Handler = function<void(HttpRequest&, HttpResponse&)>;
+    using Handler = std::function<void(HttpRequest&, HttpResponse&)>;
 
     Router();
 
-    void get(const string& path, Handler handler);
+    //-------------------------
+    // Route Registration
+    //-------------------------
 
-    void post(const string& path, Handler handler);
+    void get(const std::string& path, Handler handler);
 
-    void put(const string& path, Handler handler);
+    void post(const std::string& path, Handler handler);
 
-    void patch(const string& path, Handler handler);
+    void put(const std::string& path, Handler handler);
 
-    void del(const string& path, Handler handler);
+    void patch(const std::string& path, Handler handler);
 
-    void head(const string& path, Handler handler);
+    void del(const std::string& path, Handler handler);
 
-    void options(const string& path, Handler handler);
+    void head(const std::string& path, Handler handler);
 
-    void query(const string& path, Handler handler);
+    void options(const std::string& path, Handler handler);
+
+    void query(const std::string& path, Handler handler);
+
+    //-------------------------
+    // Route Dispatcher
+    //-------------------------
 
     bool handle(HttpRequest& request,
                 HttpResponse& response);
 
 private:
 
-    unordered_map<
+    //-------------------------------------------------
+    // One routing table per HTTP method.
+    //
+    // GET
+    //   ├── /about
+    //   ├── /users/:id
+    //   ├── /files/*
+    //
+    // POST
+    //   ├── /login
+    //   ├── /register
+    //-------------------------------------------------
+
+    std::unordered_map<
         HttpMethod,
-        unordered_map<string, Handler>
+        std::vector<Route>
     > routes;
 
+    //-------------------------
+    // Internal Helpers
+    //-------------------------
+
     void addRoute(HttpMethod method,
-                  const string& path,
+                  const std::string& path,
                   Handler handler);
 
-    bool serveStaticFile(HttpRequest& request, HttpResponse& response);
+    void parsePattern(Route& route);
+
+    int calculatePriority(const Route& route);
+
+    bool matchRoute(const Route& route,
+                    HttpRequest& request);
+
+    std::vector<std::string>
+    splitPath(const std::string& path) const;
+
+    bool serveStaticFile(HttpRequest& request,
+                         HttpResponse& response);
 };
