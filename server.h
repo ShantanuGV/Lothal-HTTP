@@ -5,6 +5,7 @@
 #include <string>
 
 #include "router.h"
+#include "MiddlewarePipeline.h"
 
 class Server{
     private:
@@ -14,6 +15,7 @@ class Server{
         SOCKET clientSocket;
         sockaddr_in serverAddress;
         Router router;
+        MiddlewarePipeline pipeline;
 
     public:
         Server(int port);
@@ -38,4 +40,11 @@ class Server{
         void options(const string& path, Router::Handler handler);
 
         void query(const string& path, Router::Handler handler);
+
+        void use(std::shared_ptr<Middleware> middleware);
+
+        void use(
+    const std::string& prefix,
+    std::shared_ptr<Middleware> middleware
+);
 };

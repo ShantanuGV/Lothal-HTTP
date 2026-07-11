@@ -16,6 +16,19 @@ using namespace std;
 
 #pragma comment(lib, "Ws2_32.lib")
 
+void Server::use(
+    std::shared_ptr<Middleware> middleware)
+{
+    pipeline.use(middleware);
+}
+
+void Server::use(
+    const string& prefix,
+    shared_ptr<Middleware> middleware)
+{
+    pipeline.use(prefix, middleware);
+}
+
 Server::Server(int port){
     this->port = port;
 
@@ -184,6 +197,10 @@ void Server::start(){
             (sockaddr*)&clientAddress,
             &clientSize);
 
+        char* ip = inet_ntoa(clientAddress.sin_addr);
+
+        string clientIP = ip;    
+
         if (clientSocket == INVALID_SOCKET)
         {
             cout << "Accept failed!\n";
@@ -225,6 +242,8 @@ void Server::start(){
             continue;
         }
 
+        request.setClientIP(clientIP);
+
         cout << "Method : "
              << request.getMethod()
              << endl;
@@ -239,7 +258,14 @@ void Server::start(){
 
         HttpResponse response;
 
+        pipeline.execute(
+    request,
+    response,
+    [&]()
+    {
         router.handle(request, response);
+    }
+);
 
         string rawResponse = response.build();
 

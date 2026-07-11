@@ -16,7 +16,16 @@ string MimeTypes::get(const string& filePath)
         {".svg", "image/svg+xml"},
         {".ico", "image/x-icon"},
         {".json", "application/json"},
-        {".txt", "text/plain"}
+        {".txt", "text/plain"},
+        {".mp4", "video/mp4"},
+        {".mov", "video/quicktime"},
+        {".webm", "video/webm"},
+        {".mp3", "audio/mpeg"},
+        {".wav", "audio/wav"},
+        {".ogg", "audio/ogg"},
+        {".pdf", "application/pdf"},
+        {".woff", "font/woff"},
+        {".woff2", "font/woff2"}
     };
 
     size_t dot = filePath.find_last_of('.');

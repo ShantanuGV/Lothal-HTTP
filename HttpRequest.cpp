@@ -12,6 +12,17 @@ HttpRequest::HttpRequest()
     body = "";
 }
 
+void HttpRequest::setClientIP(
+    const string& ip)
+{
+    clientIP = ip;
+}
+
+string HttpRequest::getClientIP() const
+{
+    return clientIP;
+}
+
 bool HttpRequest::parse(const string& rawRequest)
 {
     headers.clear();

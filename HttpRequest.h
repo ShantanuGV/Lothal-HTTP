@@ -36,6 +36,8 @@ private:
 
     unordered_map<string, string> query;
 
+    string clientIP;
+
     string body;
 
     bool parseRequestLine(const string& line);
@@ -68,6 +70,10 @@ public:
 
     void setParam(const string& key,
                   const string& value);
+
+    void setClientIP(const string& ip);
+
+    string getClientIP() const;              
 };
 
 ostream& operator<<(ostream& os, HttpMethod method);

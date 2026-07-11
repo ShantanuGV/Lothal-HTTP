@@ -1,5 +1,6 @@
 #include "router.h"
 
+#include <iostream>
 #include <algorithm>
 
 #include "FileSystem.h"
@@ -286,16 +287,27 @@ bool Router::serveStaticFile(
 
     string file = "public" + path;
 
+    cout << "\n===== STATIC FILE =====\n";
+    cout << "URL  : " << path << endl;
+    cout << "File : " << file << endl;
+
     string body = FileSystem::readFile(file);
+
+    cout << "Body Size : " << body.size() << endl;
+    cout << "Mime      : " << MimeTypes::get(file) << endl;
 
     if(body.empty())
     {
+        cout << "FILE NOT FOUND\n";
+
         response.setStatus("404 Not Found");
         response.setContentType("text/html");
         response.setBody("<h1>404 Not Found</h1>");
 
         return false;
     }
+
+    cout << "FILE FOUND\n";
 
     response.setStatus("200 OK");
     response.setContentType(MimeTypes::get(file));
