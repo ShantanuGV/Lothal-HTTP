@@ -13,6 +13,7 @@ A lightweight HTTP server built from scratch in C++ using WinSock.
 - MIME Types
 - Binary File Support
 - Routing
+- Middleware Pipeline
 - Multithreading
 
 ## Planned Features
