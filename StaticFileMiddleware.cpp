@@ -59,7 +59,7 @@ void StaticFileMiddleware::handle(
 bool StaticFileMiddleware::isStaticRequest(
     const string& path) const
 {
-    return true;
+    return path.find('.') != string::npos;
 }
 
 string StaticFileMiddleware::buildPath(

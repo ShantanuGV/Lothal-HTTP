@@ -4,6 +4,7 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #include "server.h"
 #include "HttpRequest.h"
@@ -11,6 +12,7 @@
 #include "FileSystem.h"
 #include "MimeTypes.h"
 #include "router.h"
+#include "ThreadPool.h"
 
 using namespace std;
 
@@ -29,7 +31,7 @@ void Server::use(
     pipeline.use(prefix, middleware);
 }
 
-Server::Server(int port){
+Server::Server(int port) : port(port), threadPool(4){
     this->port = port;
 
     serverSocket = INVALID_SOCKET;
@@ -182,35 +184,18 @@ void Server::query(
     router.query(path, handler);
 }
 
-void Server::start(){
-    cout << "\n========== SERVER STARTED ==========\n";
+void Server::handelClient(
+    SOCKET clientSocket,
+    string clientIP
+)
+{
+    // Paste EVERYTHING from
 
-    bool running = true;
+    cout << "Worker Thread: "
+         << std::this_thread::get_id()
+         << endl;
 
-    while (running){
-
-        sockaddr_in clientAddress;
-        int clientSize = sizeof(clientAddress);
-
-        SOCKET clientSocket = accept(
-            serverSocket,
-            (sockaddr*)&clientAddress,
-            &clientSize);
-
-        char* ip = inet_ntoa(clientAddress.sin_addr);
-
-        string clientIP = ip;    
-
-        if (clientSocket == INVALID_SOCKET)
-        {
-            cout << "Accept failed!\n";
-            continue;
-        }
-
-        cout << "\nClient Connected!\n";
-
-
-        char buffer[4096];
+    char buffer[4096];
 
         int bytesReceived = recv(
             clientSocket,
@@ -223,7 +208,7 @@ void Server::start(){
             cout << "Receive failed!\n";
 
             closesocket(clientSocket);
-            continue;
+            return;
         }
 
         buffer[bytesReceived] = '\0';
@@ -239,7 +224,7 @@ void Server::start(){
 
             closesocket(clientSocket);
 
-            continue;
+            return;
         }
 
         request.setClientIP(clientIP);
@@ -292,6 +277,45 @@ void Server::start(){
         closesocket(clientSocket);
 
         cout << "Client disconnected.\n";
+}
+
+void Server::start(){
+    cout << "\n========== SERVER STARTED ==========\n";
+
+    bool running = true;
+
+    while (running){
+
+        sockaddr_in clientAddress;
+        int clientSize = sizeof(clientAddress);
+
+        SOCKET clientSocket = accept(
+            serverSocket,
+            (sockaddr*)&clientAddress,
+            &clientSize);
+
+        char* ip = inet_ntoa(clientAddress.sin_addr);
+
+        string clientIP = ip;    
+
+        if (clientSocket == INVALID_SOCKET)
+        {
+            cout << "Accept failed!\n";
+            continue;
+        }
+
+        cout << "\nClient Connected!\n";
+
+
+        threadPool.submit(
+            [this, clientSocket, clientIP](){
+                handelClient(
+                    clientSocket,
+                    clientIP
+                );
+            }
+        );        
+        
     }
 }
 

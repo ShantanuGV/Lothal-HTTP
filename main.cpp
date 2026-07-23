@@ -63,6 +63,18 @@ server.use(
         );
     });
 
+    server.get("/slow",
+[](HttpRequest& req, HttpResponse& res)
+{
+    std::this_thread::sleep_for(
+        std::chrono::seconds(5)
+    );
+
+    res.setStatus("200 OK");
+    res.setContentType("text/plain");
+    res.setBody("Finished");
+});
+
     server.post("/login",
     [](HttpRequest& req, HttpResponse& res)
     {

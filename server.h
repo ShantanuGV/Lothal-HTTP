@@ -6,6 +6,7 @@
 
 #include "router.h"
 #include "MiddlewarePipeline.h"
+#include "ThreadPool.h"
 
 class Server{
     private:
@@ -16,6 +17,8 @@ class Server{
         sockaddr_in serverAddress;
         Router router;
         MiddlewarePipeline pipeline;
+        void handelClient(SOCKET clientSocket, std :: string clientIP);
+        ThreadPool threadPool;
 
     public:
         Server(int port);
