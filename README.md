@@ -13,9 +13,20 @@ A lightweight HTTP server built from scratch in C++ using WinSock.
 - MIME Types
 - Binary File Support
 - Routing
+- Multithreading
 
 ## Planned Features
-- Multithreading
+- Keep Alive
+- Range Requests
+- Chunked
+- Caching
+- Compression
+- Directory Listing
+- Virtual Hosts
+- IOCP
+- Logging
+- Configuration
+- RFC Compliance
 - HTTPS
 
 ## Learning Goals
