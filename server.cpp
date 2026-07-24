@@ -271,6 +271,11 @@ void Server::handelClient(
         
         string connection = request.getHeader("Connection");
 
+        string range = request.getHeader("Range");
+        if(!range.empty()){
+            cout << "Range: " << range << endl;
+        }
+
         bool keepAlive = true;
 
         // HTTP/1.0 defaults to close

@@ -1,7 +1,8 @@
 #include <iostream>
 
 #include "StaticFileMiddleware.h"
-
+#include "HttpRange.h"
+#include "HttpRangeResolver.h"
 #include "FileSystem.h"
 #include "MimeTypes.h"
 
@@ -36,7 +37,86 @@ void StaticFileMiddleware::handle(
 
     string file = buildPath(path);
 
-    string body = FileSystem::readFile(file);
+    string rangeHeader =
+    request.getHeader("Range");
+
+HttpRange range =
+    HttpRangeParser::parse(rangeHeader);
+
+long long fileSize =
+    FileSystem::getFileSize(file);
+
+if(range.valid)
+{
+    if(!HttpRangeResolver::resolve(range, fileSize))
+    {
+        response.setStatus(
+            "416 Range Not Satisfiable"
+        );
+
+        response.setHeader(
+            "Content-Range",
+            "bytes */" +
+            to_string(fileSize)
+        );
+
+        response.setContentType(
+            "text/plain"
+        );
+
+        response.setBody(
+            "Invalid Range"
+        );
+
+        return;
+    }
+
+    cout << "\n===== RANGE =====\n";
+
+    cout << "Start : "
+         << range.start
+         << endl;
+
+    cout << "End   : "
+         << range.end
+         << endl;
+}
+
+    string body;
+
+if(range.valid)
+{
+    body =
+        FileSystem::readRange(
+            file,
+            range.start,
+            range.end - range.start + 1
+        );
+
+    response.setStatus(
+        "206 Partial Content"
+    );
+
+    response.setHeader(
+        "Accept-Ranges",
+        "bytes"
+    );
+
+    response.setHeader(
+        "Content-Range",
+        "bytes " +
+        to_string(range.start) +
+        "-" +
+        to_string(range.end) +
+        "/" +
+        to_string(fileSize)
+    );
+}
+else
+{
+    body =
+        FileSystem::readFile(file);
+}
 
     cout << "Body Size = "
      << body.size()
@@ -48,12 +128,23 @@ void StaticFileMiddleware::handle(
         return;
     }
 
+    if(!range.valid)
+{
     response.setStatus("200 OK");
+}
 
-    response.setContentType(
-        MimeTypes::get(file));
+response.setHeader(
+    "Accept-Ranges",
+    "bytes"
+);
 
+response.setContentType(
+    MimeTypes::get(file));
+
+if(request.getMethod() != HttpMethod::HEAD)
+{
     response.setBody(body);
+}
 }
 
 bool StaticFileMiddleware::isStaticRequest(
