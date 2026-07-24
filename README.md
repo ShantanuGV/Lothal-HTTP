@@ -15,9 +15,9 @@ A lightweight HTTP server built from scratch in C++ using WinSock.
 - Routing
 - Middleware Pipeline
 - Multithreading
+- Keep Alive
 
 ## Planned Features
-- Keep Alive
 - Range Requests
 - Chunked
 - Caching
