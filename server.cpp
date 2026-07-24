@@ -18,6 +18,12 @@ using namespace std;
 
 #pragma comment(lib, "Ws2_32.lib")
 
+
+
+
+const DWORD KEEP_ALIVE_TIMEOUT = 10000;   // 10 seconds
+const int MAX_KEEP_ALIVE_REQUESTS = 100;
+
 void Server::use(
     std::shared_ptr<Middleware> middleware)
 {
@@ -196,6 +202,15 @@ void Server::handelClient(
          << endl;
 
     char buffer[4096];
+    int requestCount = 0;
+    while (true){
+
+        requestCount++;
+
+        if(requestCount > MAX_KEEP_ALIVE_REQUESTS){
+            cout << "Keep-Alive request limit reached.\n";
+            break;
+        }
 
         int bytesReceived = recv(
             clientSocket,
@@ -203,12 +218,24 @@ void Server::handelClient(
             sizeof(buffer) - 1,
             0);
 
-        if (bytesReceived == SOCKET_ERROR)
-        {
-            cout << "Receive failed!\n";
+        if(bytesReceived == SOCKET_ERROR){
+            int error = WSAGetLastError();
 
-            closesocket(clientSocket);
-            return;
+            if(error == WSAETIMEDOUT){
+                cout << "Keep-Alive timeout.\n";
+            }
+            else{
+                cout << "Receive failed: "
+                     << error
+                     << endl;
+            }
+
+            break;
+        }
+
+        if(bytesReceived == 0){
+            cout << "Client closed connection.\n";
+            break;
         }
 
         buffer[bytesReceived] = '\0';
@@ -241,16 +268,38 @@ void Server::handelClient(
              << request.getVersion()
              << endl;
 
+        
+        string connection = request.getHeader("Connection");
+
+        bool keepAlive = true;
+
+        // HTTP/1.0 defaults to close
+        if(request.getVersion() == "HTTP/1.0"){
+            keepAlive = (connection == "keep-alive");
+        }
+        // HTTP/1.1 defaults to keep-alive
+        else{
+            keepAlive = (connection != "close");
+        }
+
+
         HttpResponse response;
 
         pipeline.execute(
-    request,
-    response,
-    [&]()
-    {
-        router.handle(request, response);
-    }
-);
+            request,
+            response,
+            [&]()
+            {
+                router.handle(request, response);
+            }
+        );
+
+        if(keepAlive){
+            response.setHeader("Connection", "keep-alive");
+        }
+        else{
+            response.setHeader("Connection", "close");
+        }
 
         string rawResponse = response.build();
 
@@ -273,6 +322,12 @@ void Server::handelClient(
                  << bytesSent
                  << " bytes)\n";
         }
+
+
+        if(!keepAlive){
+            break;
+        }
+    }
 
         closesocket(clientSocket);
 
@@ -303,6 +358,14 @@ void Server::start(){
             cout << "Accept failed!\n";
             continue;
         }
+
+        setsockopt(
+            clientSocket,
+            SOL_SOCKET,
+            SO_RCVTIMEO,
+            (const char*)&KEEP_ALIVE_TIMEOUT,
+            sizeof(KEEP_ALIVE_TIMEOUT)
+        );
 
         cout << "\nClient Connected!\n";
 
